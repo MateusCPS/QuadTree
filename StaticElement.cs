@@ -11,6 +11,7 @@ namespace QuadTreeNamespace
 {
     public class StaticElement:Collidable
     {
+        float scale = 0.05f;
         public StaticElement(Texture2D texture, Vector2 position)
         {
             Texture = texture;
@@ -24,7 +25,8 @@ namespace QuadTreeNamespace
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, Position, Color.White);
+            Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
+            spriteBatch.Draw(Texture, Position, null, Color.White, 0f, origin, scale, SpriteEffects.None, 0f);
         }
     }
 }
