@@ -112,10 +112,10 @@ namespace QuadTreeNamespace
             float verticalMidpoint = bounds.X + (bounds.Width / 2);
             float horizontalMidpoint = bounds.Y + (bounds.Height / 2);
 
-            bool topQuadrant = (element.Position.Y < horizontalMidpoint && element.Position.Y + element.Size.Y < horizontalMidpoint);
+            bool topQuadrant = (element.Position.Y + element.Size.Y < horizontalMidpoint);
             bool bottomQuadrant = (element.Position.Y > horizontalMidpoint);
 
-            if (element.Position.X < verticalMidpoint && element.Position.X + element.Size.X < verticalMidpoint)
+            if (element.Position.X + element.Size.X < verticalMidpoint)
             {
                 if (topQuadrant)
                     index = 1;

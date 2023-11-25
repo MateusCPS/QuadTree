@@ -13,8 +13,6 @@ namespace QuadTreeNamespace
     public class DynamicElement:GameObject
     {
         Vector2 Velocity;
-        int areaWidth, areaHeight;
-        Color color = Color.Black;
         Random random = new Random();
         public DynamicElement(Texture2D texture, Game game)
         {
@@ -41,16 +39,9 @@ namespace QuadTreeNamespace
         {
             if (Bounds.Intersects(playerElement.Bounds))
             {
-                Rectangle thisRef = Bounds;
-                Rectangle playerRef = playerElement.Bounds;
-                Rectangle difference;
-
-                Rectangle.Intersect(ref playerRef, ref thisRef, out difference);
                 playerElement.IsColliding = true;
                 _isCollidingWithPlayer = true;
-                Velocity = new Vector2(thisRef.Center.X - difference.Center.X,
-                                              thisRef.Center.Y - difference.Center.Y);
-                Velocity.Normalize();
+                Velocity *= -1;
             }
             else
             {
@@ -66,19 +57,10 @@ namespace QuadTreeNamespace
                 {
                     if (Bounds.Intersects(elements[i].Bounds))
                     {
-                        Rectangle thisRef = Bounds;
-                        Rectangle playerRef = elements[i].Bounds;
-                        Rectangle difference;
-
-                        Rectangle.Intersect(ref playerRef, ref thisRef, out difference);
-
                         elements[i].IsColliding = true;
                         _isColliding = true;
 
-                        Velocity = new Vector2(thisRef.Center.X - difference.Center.X,
-                                              thisRef.Center.Y - difference.Center.Y);
-                        if (Velocity != Vector2.Zero)
-                            Velocity.Normalize();
+                        Velocity *= -1;
                     }
                     else
                     {
@@ -116,7 +98,8 @@ namespace QuadTreeNamespace
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            if(_isCollidingWithPlayer || _isColliding)
+            Color color = Color.Black;
+            if (_isCollidingWithPlayer)
             {
                 color = Color.White;
             }

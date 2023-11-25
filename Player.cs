@@ -17,8 +17,9 @@ namespace QuadTreeNamespace
     {
         Vector2 playerPosition;
 
-        public Player(Texture2D texture)
+        public Player(Texture2D texture, Game game)
         {
+            _game = game;
             _texture = texture;
             _position = new Vector2(100, 100); // Posição inicial do jogador
             playerPosition = Position;
@@ -44,6 +45,14 @@ namespace QuadTreeNamespace
 
         public void Update(GameTime gameTime)
         {
+            if (_position.X > _game.Window.ClientBounds.Width || _position.X < 0)
+            {
+                _position.X *= -1;
+            }
+            if (_position.Y > _game.Window.ClientBounds.Height || _position.Y < 0)
+            {
+                _position.Y *= -1;
+            }
             KeyboardState keyboardState = Keyboard.GetState();
             if (keyboardState.IsKeyDown(Keys.Left))
                 _position.X -= 5;

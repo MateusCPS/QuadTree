@@ -51,7 +51,7 @@ namespace QuadTreeNamespace
             {
                 elements.Add(new DynamicElement(Content.Load<Texture2D>("Heart"), this));
             }
-            _player = new Player(Content.Load<Texture2D>("test"));
+            _player = new Player(Content.Load<Texture2D>("test"), this);
 
             foreach (var element in elements)
             {
