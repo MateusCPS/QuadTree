@@ -6,66 +6,122 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.DirectoryServices.ActiveDirectory;
 
 namespace QuadTreeNamespace
 {
-    public class DynamicElement:Collidable
+    public class DynamicElement:GameObject
     {
-        float scale = 1f;
-        Vector2 dynamicObjectPos, Velocity;
+        Vector2 Velocity;
         int areaWidth, areaHeight;
-        public DynamicElement(Texture2D texture, Vector2 position, int areaWidth, int areaHeight)
+        Color color = Color.Black;
+        Random random = new Random();
+        public DynamicElement(Texture2D texture, Game game)
         {
-            Texture = texture;
-            dynamicObjectPos = position;
-            this.areaWidth = areaWidth;
-            this.areaHeight = areaHeight;
+            _texture = texture;
+            _game = game;
+            _size = new Point(10, 10);
+            float x = random.Next(0, _game.Window.ClientBounds.Width - _size.X);
+            float y = random.Next(0, _game.Window.ClientBounds.Height - _size.Y);
+            
+            _position = new Vector2(x, y);
+
             InitializeRandomVelocity();
         }
 
         private void InitializeRandomVelocity()
         {
-            // Gere uma direção de movimento aleatória
             float randomDirection = MathHelper.ToRadians(Abp.RandomHelper.GetRandom(0,360));
 
-            // Atribua uma velocidade inicial constante (você pode ajustar conforme necessário)
             float initialSpeed = 100f;
             Velocity = new Vector2((float)Math.Cos(randomDirection), (float)Math.Sin(randomDirection)) * initialSpeed;
         }
 
-        public override void Update(GameTime gameTime)
+        public override void Collision(GameObject playerElement)
+        {
+            if (Bounds.Intersects(playerElement.Bounds))
+            {
+                Rectangle thisRef = Bounds;
+                Rectangle playerRef = playerElement.Bounds;
+                Rectangle difference;
+
+                Rectangle.Intersect(ref playerRef, ref thisRef, out difference);
+                playerElement.IsColliding = true;
+                _isCollidingWithPlayer = true;
+                Velocity = new Vector2(thisRef.Center.X - difference.Center.X,
+                                              thisRef.Center.Y - difference.Center.Y);
+                Velocity.Normalize();
+            }
+            else
+            {
+                _isColliding = false;
+            }
+        }
+
+        public override void Collision(List<GameObject> elements)
+        {
+            for (int i = 0; i < elements.Count; i++)
+            {
+                if (elements[i] != this)
+                {
+                    if (Bounds.Intersects(elements[i].Bounds))
+                    {
+                        Rectangle thisRef = Bounds;
+                        Rectangle playerRef = elements[i].Bounds;
+                        Rectangle difference;
+
+                        Rectangle.Intersect(ref playerRef, ref thisRef, out difference);
+
+                        elements[i].IsColliding = true;
+                        _isColliding = true;
+
+                        Velocity = new Vector2(thisRef.Center.X - difference.Center.X,
+                                              thisRef.Center.Y - difference.Center.Y);
+                        if (Velocity != Vector2.Zero)
+                            Velocity.Normalize();
+                    }
+                    else
+                    {
+                        _isColliding = false;
+                    }
+                }
+            }
+        }
+
+
+        public override void Move(GameTime gameTime)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            dynamicObjectPos += Velocity * deltaTime;
+            _position += Velocity * deltaTime;
 
-            // Adicione lógica específica para elementos dinâmicos aqui
 
-            if (dynamicObjectPos.X < 0)
-            {
-                // Inverta a direção horizontal
-                Velocity.X *= -1;
-            }
-            if (dynamicObjectPos.X > areaWidth)
+            if (_position.X < 0)
             {
                 Velocity.X *= -1;
             }
-
-            if (dynamicObjectPos.Y < 0)
+            if (_position.X > _game.Window.ClientBounds.Width)
             {
-                // Inverta a direção vertical
-                Velocity.Y *= -1;
-            }
-            if (dynamicObjectPos.Y > areaHeight)
-            {
-                Velocity.Y *= -1;
+                Velocity.X *= -1;
             }
 
+            if (_position.Y < 0)
+            {
+                Velocity.Y *= -1;
+            }
+            if (_position.Y > _game.Window.ClientBounds.Height)
+            {
+                Velocity.Y *= -1;
+            }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
-            spriteBatch.Draw(Texture, dynamicObjectPos, null, Color.Black, 0f, origin, scale, SpriteEffects.None, 0f);
+            if(_isCollidingWithPlayer || _isColliding)
+            {
+                color = Color.White;
+            }
+
+            spriteBatch.Draw(_texture, new Rectangle((int)_position.X, (int)_position.Y, _size.X, _size.Y), color); ;
         }
     }
 }

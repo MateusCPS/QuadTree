@@ -6,27 +6,38 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SharpDX.Direct3D9;
 
 namespace QuadTreeNamespace
 {
-    public class StaticElement:Collidable
+    public class StaticElement : GameObject
     {
-        float scale = 0.05f;
-        public StaticElement(Texture2D texture, Vector2 position)
+        Random random = new Random();
+        Color color = Color.Yellow;
+        public StaticElement(Texture2D texture, Game game)
         {
-            Texture = texture;
-            Position = position;
-        }
+            _texture = texture;
+            int width = random.Next(10, 20);
+            int height = random.Next(10, 20);
+            float x = random.Next(0, game.Window.ClientBounds.Width - width);
+            float y = random.Next(0, game.Window.ClientBounds.Height - height);
+            _position = new Vector2(x, y);
 
-        public override void Update(GameTime gameTime)
-        {
-            // Lógica específica para elementos estáticos (se necessário)
+            _size = new Point(width, height);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
-            spriteBatch.Draw(Texture, Position, null, Color.White, 0f, origin, scale, SpriteEffects.None, 0f);
+            if (_isCollidingWithPlayer)
+            {
+                color = Color.Black;
+            }
+            else
+            {
+                color = Color.Yellow;
+            }
+            
+            spriteBatch.Draw(_texture, new Rectangle((int)_position.X, (int)_position.Y, _size.X, _size.Y), color);
         }
     }
 }

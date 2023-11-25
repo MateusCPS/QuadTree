@@ -15,14 +15,14 @@ namespace QuadTreeNamespace
         private const int MaxLevels = 5;
 
         private int _level;
-        private List<Collidable> _objects;
+        private List<GameObject> _objects;
         private Rectangle _bounds;
         private QuadTreeScript[] _nodes;
 
         public QuadTreeScript(int level, Rectangle bounds)
         {
             _level = level;
-            _objects = new List<Collidable>();
+            _objects = new List<GameObject>();
             _bounds = bounds;
             _nodes = new QuadTreeScript[4];
         }
@@ -54,7 +54,7 @@ namespace QuadTreeNamespace
             _nodes[3] = new QuadTreeScript(_level + 1, new Rectangle(x + subWidth, y + subHeight, subWidth, subHeight));
         }
 
-        private int GetIndex(Collidable collidable)
+        private int GetIndex(GameObject collidable)
         {
             int index = -1;
             double verticalMidpoint = _bounds.X + (_bounds.Width / 2);
@@ -85,7 +85,7 @@ namespace QuadTreeNamespace
             return index;
         }
 
-        public void Insert(Collidable collidable)
+        public void Insert(GameObject collidable)
         {
             if (_nodes[0] != null)
             {
@@ -121,9 +121,9 @@ namespace QuadTreeNamespace
             }
         }
 
-        public List<Collidable> Retrieve(Collidable collidable)
+        public List<GameObject> Retrieve(GameObject collidable)
         {
-            List<Collidable> returnObjects = new List<Collidable>();
+            List<GameObject> returnObjects = new List<GameObject>();
 
             int index = GetIndex(collidable);
             if (index != -1 && _nodes[0] != null)

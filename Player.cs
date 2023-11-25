@@ -13,49 +13,53 @@ using SharpDX.Direct2D1.Effects;
 
 namespace QuadTreeNamespace
 {
-    public class Player : Collidable
+    public class Player : GameObject
     {
         Vector2 playerPosition;
-        float scale = 0.1f;
+
         public Player(Texture2D texture)
         {
-            Texture = texture;
-            Position = new Vector2(100, 100); // Posição inicial do jogador
+            _texture = texture;
+            _position = new Vector2(100, 100); // Posição inicial do jogador
             playerPosition = Position;
+            _size = new Point(15, 15);
         }
 
-        public override void Update(GameTime gameTime)
+        public override void Collision(List<GameObject> elements)
         {
-            // Lógica de movimento do jogador
-            // ...
+            for (int i = 0; i < elements.Count; i++)
+            {
+                if (Bounds.Intersects(elements[i].Bounds))
+                {
+                    elements[i].IsCollidingWithPlayer = true;
+                    _isColliding = true;
+                }
+                else
+                {
+                    elements[i].IsCollidingWithPlayer = false;
+                    _isColliding = false;
+                }
+            }
+        }
 
-            // Exemplo: Movimento usando as teclas de seta
+        public void Update(GameTime gameTime)
+        {
             KeyboardState keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.Left))
-                playerPosition.X -= 5;
-            if (keyboardState.IsKeyDown(Keys.Right))
-                playerPosition.X += 5;
-            if (keyboardState.IsKeyDown(Keys.Up))
-                playerPosition.Y -= 5;
-            if (keyboardState.IsKeyDown(Keys.Down))
-                playerPosition.Y += 5;
-        }
-
-        public override void Draw(SpriteBatch spriteBatch)
-        {
-            Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
-            spriteBatch.Draw(Texture, playerPosition, null, Color.White, 0f, origin, scale, SpriteEffects.None, 0f);
-        }
-
-        public bool CheckCollision(Collidable other)
-        {
-            Rectangle scaledBounds = new Rectangle(
-            (int)(playerPosition.X - (Texture.Width * scale) / 2),
-            (int)(playerPosition.Y - (Texture.Height * scale) / 2),
-            (int)(Texture.Width * scale),
-            (int)(Texture.Height * scale)
-            );
-            return scaledBounds.Intersects(other.Bounds);
+            if(_isColliding == false)
+            {
+                if (keyboardState.IsKeyDown(Keys.Left))
+                    _position.X -= 5;
+                if (keyboardState.IsKeyDown(Keys.Right))
+                    _position.X += 5;
+                if (keyboardState.IsKeyDown(Keys.Up))
+                    _position.Y -= 5;
+                if (keyboardState.IsKeyDown(Keys.Down))
+                    _position.Y += 5;
+            }
+            else
+            {
+                return;
+            }
         }
     }
 }

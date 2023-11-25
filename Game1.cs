@@ -11,8 +11,8 @@ namespace QuadTreeNamespace
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Player _player;
-        private List<StaticElement> _staticElements;
-        private List<DynamicElement> _dynamicElements;
+        private List<GameObject> elements;
+        //private List<DynamicElement> _dynamicElements;
         private QuadTreeScript _quadTree;
         Rectangle worldBounds;
 
@@ -28,103 +28,38 @@ namespace QuadTreeNamespace
 
         protected override void Initialize()
         {
+            elements = new List<GameObject>();
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            // Carregar texturas para o player, elementos estáticos e dinâmicos
-            worldBounds = new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
-            
-            _player = new Player(Content.Load<Texture2D>("test"));
-            _staticElements = GenerateStaticElements(100, worldBounds.Width, worldBounds.Height);
-            _dynamicElements = GenerateDynamicElements(200, worldBounds.Width, worldBounds.Height);
 
-            //// Configurar a QuadTree
-            //_quadTree = new QuadTreeScript(0, worldBounds);
-            //foreach (var element in _staticElements)
-            //    _quadTree.Insert(element);
-            //foreach (var element in _dynamicElements)
-            //    _quadTree.Insert(element);
-            //_quadTree.Insert(_player);
+            for (int i = 0; i < 100; i++)
+            {
+                elements.Add(new StaticElement(Content.Load<Texture2D>("Enemy_Tank"), this));
+            }
+            for (int i = 0; i < 200; i++)
+            {
+                elements.Add(new DynamicElement(Content.Load<Texture2D>("Heart"), this));
+            }
+            _player = new Player(Content.Load<Texture2D>("test"));
         }
 
         protected override void Update(GameTime gameTime)
         {
-            // Atualizar a lógica do jogo aqui
 
-            // Movimentar o jogador
             _player.Update(gameTime);
-            foreach(var element in _dynamicElements) {
-                element.Update(gameTime);
+            _player.Collision(elements);
+
+            foreach(GameObject element in elements)
+            {
+                if (element is DynamicElement)
+                    element.Move(gameTime);
             }
-
-            // Atualizar a QuadTree
-            //_quadTree.Clear();
-            //foreach (var element in _staticElements)
-            //    _quadTree.Insert(element);
-            //foreach (var element in _dynamicElements)
-            //    _quadTree.Insert(element);
-            //_quadTree.Insert(_player);
-
-            // Checar colisões apenas para elementos no mesmo setor que o jogador
-            //List<Collidable> potentialColliders = _quadTree.Retrieve(_player);
-            //foreach (var collider in potentialColliders)
-            //{
-            //    if (collider != _player && _player.CheckCollision(collider))
-            //    {
-            //        // Lógica de colisão aqui
-            //    }
-            //}
 
             base.Update(gameTime);
-        }
-
-        private List<StaticElement> GenerateStaticElements(int count, int areaWidth, int areaHeight)
-        {
-            List<StaticElement> staticElements = new List<StaticElement>();
-            Random random = new Random();
-
-            for (int i = 0; i < count; i++)
-            {
-                // Gere posições x e y normalizadas (entre 0 e 1)
-                float normalizedX = (float)random.NextDouble();
-                float normalizedY = (float)random.NextDouble();
-
-                // Calcule as posições reais dentro da área especificada
-                int x = (int)(normalizedX * areaWidth);
-                int y = (int)(normalizedY * areaHeight);
-
-                Texture2D staticTexture = Content.Load<Texture2D>("Enemy_Tank");
-
-                // Crie o elemento estático e adicione à lista
-                StaticElement staticElement = new StaticElement(staticTexture, new Vector2(x, y));
-                staticElements.Add(staticElement);
-            }
-
-            return staticElements;
-        }
-        private List<DynamicElement> GenerateDynamicElements(int count, int areaWidth, int areaHeight)
-        {
-            List<DynamicElement> dynamicElements = new List<DynamicElement>();
-            Random random = new Random();
-
-            for (int i = 0; i < count; i++)
-            {
-                // Gere posições x e y normalizadas (entre 0 e 1)
-                float normalizedX = (float)random.NextDouble();
-                float normalizedY = (float)random.NextDouble();
-
-                // Calcule as posições reais dentro da área especificada
-                int x = (int)(normalizedX * areaWidth);
-                int y = (int)(normalizedY * areaHeight);
-
-                DynamicElement dynamicElement = new DynamicElement(Content.Load<Texture2D>("Heart"), new Vector2(x, y), areaWidth, areaHeight);
-                dynamicElements.Add(dynamicElement);
-            }
-
-            return dynamicElements;
         }
         protected override void Draw(GameTime gameTime)
         {
@@ -134,9 +69,7 @@ namespace QuadTreeNamespace
 
             // Desenhar elementos aqui
             _player.Draw(_spriteBatch);
-            foreach (var element in _staticElements)
-                element.Draw(_spriteBatch);
-            foreach (var element in _dynamicElements)
+            foreach (var element in elements)
                 element.Draw(_spriteBatch);
 
             _spriteBatch.End();
