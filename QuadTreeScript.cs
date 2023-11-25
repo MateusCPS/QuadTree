@@ -11,70 +11,118 @@ namespace QuadTreeNamespace
 {
     public class QuadTreeScript
     {
-        private const int MaxObjects = 10;
-        private const int MaxLevels = 5;
+        private const int MAX_ELEMENTS_NODE = 4;
+        private const int MAX_LEVELS = 10;
 
-        private int _level;
-        private List<GameObject> _objects;
-        private Rectangle _bounds;
-        private QuadTreeScript[] _nodes;
+        private int level; //serve para controlar a altura da arvore
+        private List<GameObject> elements;
+        private Rectangle bounds; //serve para definir os limites do box da quadtree
+        private QuadTreeScript[] nodes; //representa os nos internos da arvore
+        private Texture2D pixel;
 
         public QuadTreeScript(int level, Rectangle bounds)
         {
-            _level = level;
-            _objects = new List<GameObject>();
-            _bounds = bounds;
-            _nodes = new QuadTreeScript[4];
+            this.level = level;
+            elements = new List<GameObject>();
+            this.bounds = bounds;
+            nodes = new QuadTreeScript[4];
         }
 
+        //Serve para reiniciar/limpar a quadtree
         public void Clear()
         {
-            _objects.Clear();
+            elements.Clear(); //limpa a lista de elementos
 
-            for (int i = 0; i < _nodes.Length; i++)
+            for (int i = 0; i < nodes.Length; i++) //passa por todos os nos da arvore
             {
-                if (_nodes[i] != null)
+                if (nodes[i] != null) //Se existir algo nesse node
                 {
-                    _nodes[i].Clear();
-                    _nodes[i] = null;
+                    nodes[i].Clear(); // A funcao e chamada recursivamente limpando cada no
+                    nodes[i] = null; // Passa o valor null para o no
                 }
             }
         }
 
-        private void Split()
+        //Retorna em qual quadrante está um elemento
+        public QuadTreeScript GetQuadrant(GameObject element)
         {
-            int subWidth = _bounds.Width / 2;
-            int subHeight = _bounds.Height / 2;
-            int x = _bounds.X;
-            int y = _bounds.Y;
+            if (nodes[0] != null)
+            {
+                int index = GetIndex(element);
 
-            _nodes[0] = new QuadTreeScript(_level + 1, new Rectangle(x + subWidth, y, subWidth, subHeight));
-            _nodes[1] = new QuadTreeScript(_level + 1, new Rectangle(x, y, subWidth, subHeight));
-            _nodes[2] = new QuadTreeScript(_level + 1, new Rectangle(x, y + subHeight, subWidth, subHeight));
-            _nodes[3] = new QuadTreeScript(_level + 1, new Rectangle(x + subWidth, y + subHeight, subWidth, subHeight));
+                if (index != -1)
+                {
+                    return nodes[index].GetQuadrant(element);
+                }
+            }
+
+            return this;
         }
 
-        private int GetIndex(GameObject collidable)
+        //Retorna os elementos de um quadrante
+        public List<GameObject> GetElementsInQuadrant(QuadTreeScript quadrant, GameObject element)
+        {
+            List<GameObject> quadrantElements = new List<GameObject>();
+
+            if (!bounds.Intersects(quadrant.bounds))
+            {
+                return quadrantElements;
+            }
+
+            foreach (var e in elements)
+            {
+                if (e != element && quadrant.bounds.Intersects(e.Bounds))
+                {
+                    quadrantElements.Add(e);
+                }
+            }
+
+            if (nodes[0] != null)
+            {
+                foreach (var node in nodes)
+                {
+                    quadrantElements.AddRange(node.GetElementsInQuadrant(quadrant, element));
+                }
+            }
+
+            return quadrantElements;
+        }
+
+
+
+        //Divide a quadtree em quatro subquadrantes
+        private void Split()
+        {
+            int subWidth = bounds.Width / 2;
+            int subHeight = bounds.Height / 2;
+            int x = bounds.X;
+            int y = bounds.Y;
+
+            nodes[0] = new QuadTreeScript(level + 1, new Rectangle(x + subWidth, y, subWidth, subHeight));                // Quadrante Superior Direito
+            nodes[1] = new QuadTreeScript(level + 1, new Rectangle(x, y, subWidth, subHeight));                           // Quadrante Superior Esquerdo
+            nodes[2] = new QuadTreeScript(level + 1, new Rectangle(x, y + subHeight, subWidth, subHeight));               // Quadrante Inferior Esquerdo
+            nodes[3] = new QuadTreeScript(level + 1, new Rectangle(x + subWidth, y + subHeight, subWidth, subHeight));    // Quadrante Inferior Direito
+        }
+
+        //Essa funcao determina o indice do no filho adequado para colocar um objeto na quadtree
+        private int GetIndex(GameObject element)
         {
             int index = -1;
-            double verticalMidpoint = _bounds.X + (_bounds.Width / 2);
-            double horizontalMidpoint = _bounds.Y + (_bounds.Height / 2);
 
-            // Object can completely fit within the top quadrants
-            bool topQuadrant = (collidable.Bounds.Y < horizontalMidpoint && collidable.Bounds.Y + collidable.Bounds.Height < horizontalMidpoint);
-            // Object can completely fit within the bottom quadrants
-            bool bottomQuadrant = (collidable.Bounds.Y > horizontalMidpoint);
+            float verticalMidpoint = bounds.X + (bounds.Width / 2);
+            float horizontalMidpoint = bounds.Y + (bounds.Height / 2);
 
-            // Object can completely fit within the left quadrants
-            if (collidable.Bounds.X < verticalMidpoint && collidable.Bounds.X + collidable.Bounds.Width < verticalMidpoint)
+            bool topQuadrant = (element.Position.Y < horizontalMidpoint && element.Position.Y + element.Size.Y < horizontalMidpoint);
+            bool bottomQuadrant = (element.Position.Y > horizontalMidpoint);
+
+            if (element.Position.X < verticalMidpoint && element.Position.X + element.Size.X < verticalMidpoint)
             {
                 if (topQuadrant)
                     index = 1;
                 else if (bottomQuadrant)
                     index = 2;
             }
-            // Object can completely fit within the right quadrants
-            else if (collidable.Bounds.X > verticalMidpoint)
+            else if (element.Position.X > verticalMidpoint)
             {
                 if (topQuadrant)
                     index = 0;
@@ -85,55 +133,72 @@ namespace QuadTreeNamespace
             return index;
         }
 
-        public void Insert(GameObject collidable)
+        //Insere um elemento na Quadtree, passando o no correto para o objeto
+        public void Insert(GameObject element)
         {
-            if (_nodes[0] != null)
+            if (nodes[0] != null)
             {
-                int index = GetIndex(collidable);
+                int index = GetIndex(element);
 
                 if (index != -1)
                 {
-                    _nodes[index].Insert(collidable);
+                    nodes[index].Insert(element);
                     return;
                 }
             }
 
-            _objects.Add(collidable);
+            elements.Add(element);
 
-            if (_objects.Count > MaxObjects && _level < MaxLevels)
+            if (elements.Count > MAX_ELEMENTS_NODE && level < MAX_LEVELS)
             {
-                if (_nodes[0] == null)
+                if (nodes[0] == null)
                     Split();
 
                 int i = 0;
-                while (i < _objects.Count)
+                while (i < elements.Count)
                 {
-                    int index = GetIndex(_objects[i]);
+                    int index = GetIndex(elements[i]);
                     if (index != -1)
-                        _nodes[index].Insert(_objects[i]);
+                    {
+                        nodes[index].Insert(elements[i]);
+                        elements.RemoveAt(i);
+                    }
                     else
                     {
                         i++;
                     }
                 }
-
-                _objects.Clear();
             }
         }
 
-        public List<GameObject> Retrieve(GameObject collidable)
+
+
+        //Essa funcao serve para desenhar retangulos na tela
+        private void DrawRectangle(SpriteBatch spriteBatch, Rectangle rectangle, Color color, int thickness)
         {
-            List<GameObject> returnObjects = new List<GameObject>();
+            // Desenhar linhas horizontais
+            spriteBatch.Draw(pixel, new Rectangle(rectangle.Left, rectangle.Top, rectangle.Width, thickness), color); // Linha superior
+            spriteBatch.Draw(pixel, new Rectangle(rectangle.Left, rectangle.Bottom - thickness, rectangle.Width, thickness), color); // Linha inferior
 
-            int index = GetIndex(collidable);
-            if (index != -1 && _nodes[0] != null)
+            // Desenhar linhas verticais
+            spriteBatch.Draw(pixel, new Rectangle(rectangle.Left, rectangle.Top, thickness, rectangle.Height), color); // Linha esquerda
+            spriteBatch.Draw(pixel, new Rectangle(rectangle.Right - thickness, rectangle.Top, thickness, rectangle.Height), color); // Linha direita
+        }
+
+
+        // Renderiza a Quadtree na tela
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            pixel = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            pixel.SetData(new[] { Color.White });
+
+            DrawRectangle(spriteBatch, bounds, Color.Red, 1);
+
+            foreach (var node in nodes)
             {
-                returnObjects.AddRange(_nodes[index].Retrieve(collidable));
+                if (node != null)
+                    node.Draw(spriteBatch);
             }
-
-            returnObjects.AddRange(_objects);
-
-            return returnObjects;
         }
     }
 }

@@ -45,21 +45,14 @@ namespace QuadTreeNamespace
         public void Update(GameTime gameTime)
         {
             KeyboardState keyboardState = Keyboard.GetState();
-            if(_isColliding == false)
-            {
-                if (keyboardState.IsKeyDown(Keys.Left))
-                    _position.X -= 5;
-                if (keyboardState.IsKeyDown(Keys.Right))
-                    _position.X += 5;
-                if (keyboardState.IsKeyDown(Keys.Up))
-                    _position.Y -= 5;
-                if (keyboardState.IsKeyDown(Keys.Down))
-                    _position.Y += 5;
-            }
-            else
-            {
-                return;
-            }
+            if (keyboardState.IsKeyDown(Keys.Left))
+                _position.X -= 5;
+            if (keyboardState.IsKeyDown(Keys.Right))
+                _position.X += 5;
+            if (keyboardState.IsKeyDown(Keys.Up))
+                _position.Y -= 5;
+            if (keyboardState.IsKeyDown(Keys.Down))
+                _position.Y += 5;
         }
     }
 }
