@@ -14,6 +14,7 @@ namespace QuadTreeNamespace
     {
         Vector2 Velocity;
         Random random = new Random();
+        Color color = Color.Black;
         public DynamicElement(Texture2D texture, Game game)
         {
             _texture = texture;
@@ -98,8 +99,11 @@ namespace QuadTreeNamespace
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            Color color = Color.Black;
             if (_isCollidingWithPlayer)
+            {
+                color = Color.Black;
+            }
+            else
             {
                 color = Color.White;
             }

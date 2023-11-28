@@ -5,6 +5,7 @@ using SharpDX.Direct2D1;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 using SpriteBatch = Microsoft.Xna.Framework.Graphics.SpriteBatch;
 
 namespace QuadTreeNamespace
@@ -15,7 +16,6 @@ namespace QuadTreeNamespace
         private SpriteBatch _spriteBatch;
         private Player _player;
         private List<GameObject> elements;
-        //private List<DynamicElement> _dynamicElements;
         private QuadTreeScript _quadTree;
         bool _useQuadTree = true;
         Rectangle worldBounds;
@@ -63,11 +63,16 @@ namespace QuadTreeNamespace
         {
             _player.Update(gameTime);
 
+            if (Keyboard.GetState().IsKeyDown(Keys.H))
+            {
+                _useQuadTree = !_useQuadTree;
+            }
+
             if (_useQuadTree == true)
             {
                 QuadTreeScript playerQuadrant = _quadTree.GetQuadrant(_player);
                 List<GameObject> elementsInPlayerQuadrant = _quadTree.GetElementsInQuadrant(playerQuadrant, _player);
-                Window.Title = "Quadtree: Ativada/ com " + elementsInPlayerQuadrant.Count + "elementos no quadrante do player";
+                Window.Title = "Quadtree: Ativada / com " + elementsInPlayerQuadrant.Count + " elementos no quadrante do player";
 
                 _player.Collision(elementsInPlayerQuadrant);
 
