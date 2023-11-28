@@ -67,7 +67,7 @@ namespace QuadTreeNamespace
             {
                 QuadTreeScript playerQuadrant = _quadTree.GetQuadrant(_player);
                 List<GameObject> elementsInPlayerQuadrant = _quadTree.GetElementsInQuadrant(playerQuadrant, _player);
-                Window.Title = "Quadtree: ON | Elementos no Nó do Player: " + elementsInPlayerQuadrant.Count;
+                Window.Title = "Quadtree: Ativada/ com " + elementsInPlayerQuadrant.Count + "elementos no quadrante do player";
 
                 _player.Collision(elementsInPlayerQuadrant);
 
@@ -83,7 +83,7 @@ namespace QuadTreeNamespace
             }
             else
             {
-                Window.Title = "Quadtree: OFF";
+                Window.Title = "Quadtree Desativada";
                 _player.Collision(elements);
 
                 foreach (GameObject element in elements)
